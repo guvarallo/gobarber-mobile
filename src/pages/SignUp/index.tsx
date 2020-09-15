@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import {
   Image,
   View,
@@ -8,6 +8,8 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import { useNavigation } from '@react-navigation/native';
+import { Form } from '@unform/mobile';
+import { FormHandles } from '@unform/core';
 
 import logo from '../../assets/logo.png';
 import Input from '../../components/Input/index';
@@ -16,6 +18,7 @@ import Button from '../../components/Button/index';
 import { Container, Title, BackToSignIn, BackToSignInText } from './styles';
 
 const SignUp: React.FC = () => {
+  const formRef = useRef<FormHandles>(null);
   const navigation = useNavigation();
 
   return (
@@ -35,11 +38,12 @@ const SignUp: React.FC = () => {
             <Title>Sign up below</Title>
           </View>
 
-          <Input name="name" icon="user" placeholder="Name" />
-          <Input name="email" icon="mail" placeholder="E-mail" />
-          <Input name="password" icon="lock" placeholder="Password" />
-
-          <Button onPress={() => console.log('button')}>Sign Up</Button>
+          <Form ref={formRef} onSubmit={(data) => console.log(data)}>
+            <Input name="name" icon="user" placeholder="Name" />
+            <Input name="email" icon="mail" placeholder="E-mail" />
+            <Input name="password" icon="lock" placeholder="Password" />
+          </Form>
+          <Button onPress={() => formRef.current?.submitForm()}>Sign Up</Button>
         </Container>
       </ScrollView>
 
