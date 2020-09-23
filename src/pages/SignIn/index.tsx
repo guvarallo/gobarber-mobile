@@ -14,6 +14,7 @@ import { Form } from '@unform/mobile';
 import { FormHandles } from '@unform/core';
 import * as Yup from 'yup';
 
+import { useAuth } from '../../hooks/auth';
 import getValidationErrors from '../../utils/getValidationErrors';
 import logo from '../../assets/logo.png';
 import Input from '../../components/Input/index';
@@ -37,43 +38,45 @@ const SignIn: React.FC = () => {
   const formRef = useRef<FormHandles>(null);
   const passwordInputRef = useRef<TextInput>(null);
   const navigation = useNavigation();
+  const { signIn } = useAuth();
 
-  const handleSignIn = useCallback(async (data: SignInFormData) => {
-    try {
-      formRef.current?.setErrors({}); // This is to clear all error messages
+  const handleSignIn = useCallback(
+    async (data: SignInFormData) => {
+      try {
+        formRef.current?.setErrors({}); // This is to clear all error messages
 
-      const schema = Yup.object().shape({
-        email: Yup.string()
-          .required('E-mail is required')
-          .email('Please type a valid e-mail'),
-        password: Yup.string().required('Password is required'),
-      });
+        const schema = Yup.object().shape({
+          email: Yup.string()
+            .required('E-mail is required')
+            .email('Please type a valid e-mail'),
+          password: Yup.string().required('Password is required'),
+        });
 
-      await schema.validate(data, {
-        abortEarly: false,
-      });
+        await schema.validate(data, {
+          abortEarly: false,
+        });
 
-      // await signIn({
-      //   email: data.email,
-      //   password: data.password,
-      // });
+        await signIn({
+          email: data.email,
+          password: data.password,
+        });
+      } catch (error) {
+        if (error instanceof Yup.ValidationError) {
+          const errors = getValidationErrors(error);
 
-      // history.push('/dashboard');
-    } catch (error) {
-      if (error instanceof Yup.ValidationError) {
-        const errors = getValidationErrors(error);
+          formRef.current?.setErrors(errors);
 
-        formRef.current?.setErrors(errors);
+          return;
+        }
 
-        return;
+        Alert.alert(
+          'Authentication error',
+          'Sign in error, please check your login details',
+        );
       }
-
-      Alert.alert(
-        'Authentication error',
-        'Sign in error, please check your login details',
-      );
-    }
-  }, []);
+    },
+    [signIn],
+  );
 
   return (
     <KeyboardAvoidingView

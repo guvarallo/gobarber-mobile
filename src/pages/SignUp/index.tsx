@@ -13,6 +13,7 @@ import { useNavigation } from '@react-navigation/native';
 import { Form } from '@unform/mobile';
 import { FormHandles } from '@unform/core';
 import * as Yup from 'yup';
+import api from '../../services/api';
 
 import getValidationErrors from '../../utils/getValidationErrors';
 import logo from '../../assets/logo.png';
@@ -34,37 +35,45 @@ const SignUp: React.FC = () => {
   const emailInputRef = useRef<TextInput>(null);
   const passwordInputRef = useRef<TextInput>(null);
 
-  const handleSignUp = useCallback(async (data: SignUpFormData) => {
-    try {
-      formRef.current?.setErrors({}); // This is to clear all error messages
+  const handleSignUp = useCallback(
+    async (data: SignUpFormData) => {
+      try {
+        formRef.current?.setErrors({}); // This is to clear all error messages
 
-      const schema = Yup.object().shape({
-        name: Yup.string().required('Name is required'),
-        email: Yup.string()
-          .required('E-mail is required')
-          .email('Please type a valid e-mail'),
-        password: Yup.string().min(6, 'Minimum 6 digits'),
-      });
+        const schema = Yup.object().shape({
+          name: Yup.string().required('Name is required'),
+          email: Yup.string()
+            .required('E-mail is required')
+            .email('Please type a valid e-mail'),
+          password: Yup.string().min(6, 'Minimum 6 digits'),
+        });
 
-      await schema.validate(data, {
-        abortEarly: false,
-      });
+        await schema.validate(data, {
+          abortEarly: false,
+        });
 
-      // await api.post('/users', data);
+        await api.post('/users', data);
 
-      // history.push('/');
-    } catch (error) {
-      if (error instanceof Yup.ValidationError) {
-        const errors = getValidationErrors(error);
+        Alert.alert('Sign up successful!', 'Please login to proceed.');
 
-        formRef.current?.setErrors(errors);
+        navigation.navigate('SignIn');
+      } catch (error) {
+        if (error instanceof Yup.ValidationError) {
+          const errors = getValidationErrors(error);
 
-        return;
+          formRef.current?.setErrors(errors);
+
+          return;
+        }
+
+        Alert.alert(
+          'Sign up error',
+          'An error has occurred, please try again.',
+        );
       }
-
-      Alert.alert('Sign up error', 'An error has occurred, please try again.');
-    }
-  }, []);
+    },
+    [navigation],
+  );
 
   return (
     <KeyboardAvoidingView
